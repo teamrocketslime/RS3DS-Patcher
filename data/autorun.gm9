@@ -1,4 +1,4 @@
-set DGS_VERSION 2.3.0
+set DGS_VERSION 2.3.1
 set PREVIEW_MODE V:/GreatAceAttorney.png
 set APPPATH 0:/3ds/ScarletStudy
 set OUTPATH 0:/3ds/ScarletStudy/DGS1
@@ -6,24 +6,27 @@ set DGSCART C:/000400000014AD00_v00.3ds
 set DIGITAL A:/title/00040000/0014AD00/content/00000000.app
 set DMANUAL A:/title/00040000/0014AD00/content/00000001.app
 
-echo "Welcome to the Great Ace Attorney patcher.\n This app will build Version $[DGS_VERSION] of the \nfan translation by the Scarlet Study team.\nThe process will take five to ten minutes."
+if not find $[APPPATH]/DGS1-PatchData-v$[DGS_VERSION].bps NULL
+    echo "                Could not find                \nSD:/3DS/ScarletStudy/DGS1-PatchData-v$[DGS_VERSION].bps\n       This means that this patcher was       \n   not correctly copied to the 3DS SD card.   "
+    poweroff
+end
+
+echo "Welcome to the Great Ace Attorney patcher.\n This app will build Version $[DGS_VERSION] of the \nfan translation by the Scarlet Study team.\n The process will take about two minutes. "
 
 mkdir 0:/3ds
 mkdir $[APPPATH]
 mkdir $[OUTPATH]
-mkdir $[OUTPATH]/ENG
-mkdir $[OUTPATH]/Other
 
 if find $[DGSCART] NULL
     imgmount $[DGSCART]
-    extrcode G:/content0.game.app $[OUTPATH]/Other/code.bin
-    cp -w G:/content1.manual/romfs/Manual.bcma $[OUTPATH]/Other/manual.bcma
+    extrcode G:/content0.game.app $[OUTPATH]/DGS-JPN.bin
+    cp -w G:/content1.manual/romfs/Manual.bcma $[OUTPATH]/manual.bcma
     set SOURCE G:/content0.game
 elif find $[DIGITAL] NULL
     if find $[DMANUAL] NULL
-        extrcode $[DIGITAL] $[OUTPATH]/Other/code.bin
+        extrcode $[DIGITAL] $[OUTPATH]/DGS-JPN.bin
         imgmount $[DMANUAL]
-        cp -w G:/romfs/Manual.bcma $[OUTPATH]/Other/manual.bcma
+        cp -w G:/romfs/Manual.bcma $[OUTPATH]/manual.bcma
         imgumount
         imgmount $[DIGITAL]
         set SOURCE G:
@@ -32,7 +35,7 @@ elif find $[DIGITAL] NULL
     end
 else
     @dgsnotfound
-    echo "Could not find a copy of Dai Gyakuten Saiban\n(The Great Ace Attorney) on your 3DS. Please insert\nthe cartridge or download it from the Japanese eShop\nand restart this patcher."
+    echo "    Could not find a copy of Dai Gyakuten Saiban    \n (The Great Ace Attorney) on the 3DS. Please insert \nthe cartridge or download it from the Japanese eShop\n             then restart this patcher.             "
     reboot
 end
 
@@ -40,24 +43,381 @@ if find 0:/luma/titles/000400000014AD00 NULL
     mv 0:/luma/titles/000400000014AD00 0:/luma/titles/000400000014AD00-Backup-$[DATESTAMP]-$[TIMESTAMP]
 end
 
-applybps V:/DGS1-ManualData.bps $[OUTPATH]/Other/manual.bcma $[OUTPATH]/ENG/Manual.bcma
-applybps V:/DGS1-CodeData.bps $[OUTPATH]/Other/code.bin $[OUTPATH]/ENG/code.bin
-applybpm $[APPPATH]/DGS1-PatchData-v$[DGS_VERSION].bpm $[SOURCE]/romfs $[OUTPATH]/ENG
-cmprcode $[OUTPATH]/ENG/code.bin $[OUTPATH]/ENG/code.blz
-cp -w $[OUTPATH]/ENG/code.blz $[OUTPATH]/DGS-ENG.bin
+# Begin RomFS
+cp -p $[SOURCE]/romfs/archive/evi3d_0_03_00_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/evi3d_0_03_10_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/evi3d_0_04_00_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/msg_cmn_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/table.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/title_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/UI_cmn_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/UI_opdemo01_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/UI_opdemo02_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/UI_opdemo03_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/archive/UI_opdemo05_jpn.arc $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/movie/OP.moflex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/explain_content_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/explain_support_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/explain_title_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/movie_subtitle_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/pair_reasoning_sce01_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/pair_reasoning_sce02_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/pair_reasoning_sce03_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/pair_reasoning_sce06_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/pair_reasoning_topic_message_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/msg/pair_reasoning_topic_title_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_macro00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_macro01_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_macro02_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_macro03_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c000_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c001_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c001_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c001_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c001_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c001_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c001_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c004_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c004_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c004_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c004_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c005_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c005_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c005_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c005_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c005_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c005_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c005_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c007_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c008_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c008_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c008_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c008_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c008_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c008_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c012_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c012_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c012_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c012_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c012_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c013_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c013_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c013_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c013_0003_1_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c013_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c013_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0009_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0010_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0011_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c014_0012_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c015_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c015_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c015_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c015_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c015_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c015_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c016_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_c016_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_evidence_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_pair_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce00_system_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_bg0101_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_bg1100_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_bg1101_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c000_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c000_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c000_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c000_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c001_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c001_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c001_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c001_0005_1_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c001_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c001_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c001_0010_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0009_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c002_0011_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c003_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c003_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c003_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c003_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c003_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0002_1_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0009_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c004_0010_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0009_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0010_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c005_0011_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_c006_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_chr010_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_chr030_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_chr202_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_chr203_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_chr204_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_chr303_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce01_evidence_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_bg0200_0_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_bg0200_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c000_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c000_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c100_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c101_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c101_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c101_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c101_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c101_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c101_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c102_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c102_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c102_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c103_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c104_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c105_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c105_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c105_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c105_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c106_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c106_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c106_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c106_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c106_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c107_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_c108_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_chr030_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_chr103_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce02_evidence_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_bg0200_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_bg0201_0_02_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_bg0202_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_bg0204_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_bg0205_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_bg1200_3d_check_0_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c000_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c000_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c000_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c001_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c001_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c001_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c001_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c002_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c002_0003_1_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c002_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c002_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c003_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c003_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c003_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c003_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c004_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c004_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c004_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c004_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c004_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c004_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c004_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c005_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c005_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c005_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c100_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c101_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c101_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c101_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c101_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c101_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c101_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c102_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c102_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c102_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c102_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c103_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c103_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c103_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c103_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c103_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c103_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c104_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c104_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c104_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c104_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c104_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c104_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c105_0000_1_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c105_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c105_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c105_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c105_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0007_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c106_0008_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c107_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c107_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c107_0002_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c107_0003_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c107_0004_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c107_0005_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c107_0006_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c108_0000_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_c108_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_chr010_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_chr040_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_chr070_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_chr103_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_chr205_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_chr206_00_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce03_evidence_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/script/_output/_sce04_c000_0001_jpn.gmd $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/sound/stream/se/wav/bb_benron_kaishi_st.mca $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_default_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_gift_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_hay_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_here_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_say_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_uk_default_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_uk_wait_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/12_cutin/tex/bigfont_wait_GSM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/13_dtc/tex/dtc_index_sub_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/1_ig/13_dtc/tex/dtc_move_01_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/20_evi/tex/item0_03_10_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/20_evi/tex/item0_04_00_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/20_evi/tex/item0_04_10_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/20_evi/tex/item3_00_00_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/20_evi/tex/item6_00_00_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT0_04_00_big_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT0_04_00_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT3_06_00_big_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT3_06_00_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT3_06_10_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT3_06_15_big_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT3_06_15_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT3_06_20_big_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/22_evtcut/tex/EVENT3_06_20_BM_NOMIP_HQ.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/24_demo/demo3_00_00.gui $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/24_demo/tex/demo3_00_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/2_doc/24_demo/tex/demo3_01_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/together_caption.gui $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/together_topic.gui $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/together_caption_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/together_topic00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/together_topic02_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item0_14_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_00_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_02_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_03_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_03_10_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_05_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_07_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_10_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_12_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_13_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/item1_14_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_01_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_02_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_03_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_04_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_05_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_06_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_07_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_08_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_09_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_10_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_11_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_12_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_13_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_14_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_15_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_16_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_17_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_18_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_19_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_22_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_27_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_28_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE01_00_29_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_00_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_01_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_02_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_03_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_04_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_05_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_06_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_07_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_08_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_09_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_10_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_11_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_12_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_13_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_14_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_15_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_16_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_17_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_18_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_19_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_20_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_21_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/3_mg/30_together/tex/txt/PAIR_SCE03_00_22_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/5_guide/50_tutorial/tex/guide_sce0_jpn_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/5_guide/50_tutorial/tex/guide_sce1_jpn_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/5_guide/50_tutorial/tex/guide_sce2_jpn_BM_NOMIP.tex $[OUTPATH]/DGS-JPN.bin
+cp -p $[SOURCE]/romfs/UI/5_guide/51_film/film_sub.gui $[OUTPATH]/DGS-JPN.bin
+# End RomFS
 
-for -r $[SOURCE]/romfs *
-    if not isdir $[FORPATH]
-        strsplit -f NEWPATH $[FORPATH] s
-        if find $[OUTPATH]/ENG$[NEWPATH] NULL
-            cp -p $[OUTPATH]/ENG$[NEWPATH] $[OUTPATH]/DGS-ENG.bin
-        end
-    end
-next
+cp -p $[OUTPATH]/manual.bcma $[OUTPATH]/DGS-JPN.bin
 
-cp -p $[OUTPATH]/ENG/manual.bcma $[OUTPATH]/DGS-ENG.bin
-
-applybps V:/DGS1-CiaData.bps $[OUTPATH]/DGS-ENG.bin $[APPPATH]/DGS1-English-v$[DGS_VERSION].cia
+applybps $[APPPATH]/DGS1-PatchData-v$[DGS_VERSION].bps $[OUTPATH]/DGS-JPN.bin $[APPPATH]/DGS1-English-v$[DGS_VERSION].cia
 verify $[APPPATH]/DGS1-English-v$[DGS_VERSION].cia
 
 rm $[OUTPATH]
