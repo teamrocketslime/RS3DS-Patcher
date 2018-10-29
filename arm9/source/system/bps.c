@@ -271,7 +271,7 @@ void findNewOffset(BeatFile *bf) {
     bf->relOffset += offset;
 }
 
-int ApplyBeatPatch(const char* targetName) {
+int ApplyBeatPatch(const char* targetName, const char* sourceName) {
     bpsChecksum = ~0;
     patch->relOffset = 0;
     if(bpsSize < 19) return fatalError(BEAT_PATCH_TOO_SMALL);
@@ -398,11 +398,13 @@ int ApplyBeatPatch(const char* targetName) {
         checksumChunk(source, source->checksumNeeded);
     }
     
+    u32 sourceSize = source->size;
     if (!bpmIsActive) { finalPatchChecksum = closeFile(patch); patch = NULL; }
     u32 finalSourceChecksum = closeFile(source); source = NULL;
     u32 finalTargetChecksum = closeFile(target); target = NULL;
     if(finalPatchChecksum != patchPatchChecksum) return fatalError(BEAT_PATCH_CHECKSUM_INVALID);
-    if(finalSourceChecksum != patchSourceChecksum) return fatalError(BEAT_SOURCE_CHECKSUM_INVALID);
+    if(finalSourceChecksum != patchSourceChecksum &&
+        patchSourceChecksum != crc32_calculate_from_file(sourceName, 0, sourceSize)) return fatalError(BEAT_SOURCE_CHECKSUM_INVALID);
     if(finalTargetChecksum != patchTargetChecksum) return fatalError(BEAT_TARGET_CHECKSUM_INVALID);
     
     return BEAT_SUCCESS;
@@ -416,7 +418,7 @@ int ApplyBPSPatch(const char* patchName, const char* sourceName, const char* tar
     
     bpsSize = patch->size;
     snprintf(progressText, 256, "%s", targetName);
-    return ApplyBeatPatch(targetName);
+    return ApplyBeatPatch(targetName, sourceName);
 }
 
 int ApplyBPMPatch(const char* patchName, const char* sourcePath, const char* targetPath) {
@@ -476,7 +478,7 @@ int ApplyBPMPatch(const char* patchName, const char* sourcePath, const char* tar
                 source = initFile(oldPath, BEAT_SOURCE, 0);
                 if (!source) return fatalError(BEAT_INVALID_FILE_PATH);
                 bpsSize = beatReadNumber();
-                int result = ApplyBeatPatch(newPath);
+                int result = ApplyBeatPatch(newPath, oldPath);
                 if (result != BEAT_SUCCESS) return result;
             } else if(action == BEAT_MIRRORFILE) {
                 if (!beatCopy(oldPath, newPath, 0, 0)) return fatalError(BEAT_INVALID_FILE_PATH);
