@@ -1,0 +1,65 @@
+set DGS_VERSION 2.3.0
+set PREVIEW_MODE V:/GreatAceAttorney.png
+set APPPATH 0:/3ds/ScarletStudy
+set OUTPATH 0:/3ds/ScarletStudy/DGS1
+set DGSCART C:/000400000014AD00_v00.3ds
+set DIGITAL A:/title/00040000/0014AD00/content/00000000.app
+set DMANUAL A:/title/00040000/0014AD00/content/00000001.app
+
+echo "Welcome to the Great Ace Attorney patcher.\n This app will build Version $[DGS_VERSION] of the \nfan translation by the Scarlet Study team.\nThe process will take five to ten minutes."
+
+mkdir 0:/3ds
+mkdir $[APPPATH]
+mkdir $[OUTPATH]
+mkdir $[OUTPATH]/ENG
+mkdir $[OUTPATH]/Other
+
+if find $[DGSCART] NULL
+    imgmount $[DGSCART]
+    extrcode G:/content0.game.app $[OUTPATH]/Other/code.bin
+    cp -w G:/content1.manual/romfs/Manual.bcma $[OUTPATH]/Other/manual.bcma
+    set SOURCE G:/content0.game
+elif find $[DIGITAL] NULL
+    if find $[DMANUAL] NULL
+        extrcode $[DIGITAL] $[OUTPATH]/Other/code.bin
+        imgmount $[DMANUAL]
+        cp -w G:/romfs/Manual.bcma $[OUTPATH]/Other/manual.bcma
+        imgumount
+        imgmount $[DIGITAL]
+        set SOURCE G:
+    else
+        goto dgsnotfound
+    end
+else
+    @dgsnotfound
+    echo "Could not find a copy of Dai Gyakuten Saiban\n(The Great Ace Attorney) on your 3DS. Please insert\nthe cartridge or download it from the Japanese eShop\nand restart this patcher."
+    reboot
+end
+
+if find 0:/luma/titles/000400000014AD00 NULL
+    mv 0:/luma/titles/000400000014AD00 0:/luma/titles/000400000014AD00-Backup-$[DATESTAMP]-$[TIMESTAMP]
+end
+
+applybps V:/DGS1-ManualData.bps $[OUTPATH]/Other/manual.bcma $[OUTPATH]/ENG/Manual.bcma
+applybps V:/DGS1-CodeData.bps $[OUTPATH]/Other/code.bin $[OUTPATH]/ENG/code.bin
+applybpm $[APPPATH]/DGS1-PatchData-v$[DGS_VERSION].bpm $[SOURCE]/romfs $[OUTPATH]/ENG
+cmprcode $[OUTPATH]/ENG/code.bin $[OUTPATH]/ENG/code.blz
+cp -w $[OUTPATH]/ENG/code.blz $[OUTPATH]/DGS-ENG.bin
+
+for -r $[SOURCE]/romfs *
+    if not isdir $[FORPATH]
+        strsplit -f NEWPATH $[FORPATH] s
+        if find $[OUTPATH]/ENG$[NEWPATH] NULL
+            cp -p $[OUTPATH]/ENG$[NEWPATH] $[OUTPATH]/DGS-ENG.bin
+        end
+    end
+next
+
+cp -p $[OUTPATH]/ENG/manual.bcma $[OUTPATH]/DGS-ENG.bin
+
+applybps V:/DGS1-CiaData.bps $[OUTPATH]/DGS-ENG.bin $[APPPATH]/DGS1-English-v$[DGS_VERSION].cia
+verify $[APPPATH]/DGS1-English-v$[DGS_VERSION].cia
+
+rm $[OUTPATH]
+
+echo "Patching complete. Your 3DS will now reboot.\n  To complete the update to version $[DGS_VERSION],  \n you will then need to open FBI and install \nSD:/3DS/ScarletStudy/DGS1-English-v$[DGS_VERSION].cia"
