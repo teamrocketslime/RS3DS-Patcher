@@ -434,11 +434,15 @@ bool BuildVGameCiaDir(void) {
         TmdContentChunk* content_list = cia->content_list;
         u32 content_count = getbe16(cia->tmd.content_count);
         u64 next_offset = info.offset_content;
+        u8* cnt_index = cia->header.content_index;
         for (u32 i = 0; (i < content_count) && (i < TMD_MAX_CONTENTS); i++) {
             const u16 index = getbe16(content_list[i].index);
             const u32 id = getbe32(content_list[i].id);
             const u64 size = getbe64(content_list[i].size);
             const u32 keyslot = (getbe16(content_list[i].type) & 0x1) ? index : (u32) -1;
+
+            if (!(cnt_index[index/8] & (1 << (7-(index%8)))))
+                continue; // skip missing contents
             
             u32 cnt_type = 0;
             if (size >= 0x200) {
@@ -875,22 +879,20 @@ bool OpenVGameDir(VirtualDir* vdir, VirtualFile* ventry) {
         if (!BuildVGameExeFsDir()) return false;
     } else if ((vdir->flags & VFLAG_ROMFS) && (offset_romfs != vdir->offset)) {
         offset_nitro = (u64) -1; // mutually exclusive
-        // validate romFS magic
-        u8 magic[] = { ROMFS_MAGIC };
-        u8 header[sizeof(magic)];
-        if ((ReadNcchImageBytes(header, vdir->offset, sizeof(magic)) != 0) ||
-            (memcmp(magic, header, sizeof(magic)) != 0))
+        // validate ivfc header
+        RomFsIvfcHeader ivfc;
+        if ((ReadNcchImageBytes(&ivfc, vdir->offset, sizeof(RomFsIvfcHeader)) != 0) ||
+            (ValidateRomFsHeader(&ivfc, 0) != 0))
             return false;
         // validate lv3 header
         RomFsLv3Header lv3;
-        for (u32 i = 1; i < 8; i++) {
-            offset_lv3 = vdir->offset + (i*OFFSET_LV3);
-            if (ReadNcchImageBytes(&lv3, offset_lv3, sizeof(RomFsLv3Header)) != 0)
-                return false;
-            if (ValidateLv3Header(&lv3, 0) == 0)
-                break;
+        offset_lv3 = vdir->offset + GetRomFsLvOffset(&ivfc, 3);
+        if ((ReadNcchImageBytes(&lv3, offset_lv3, sizeof(RomFsLv3Header)) != 0) ||
+            (ValidateLv3Header(&lv3, 0) != 0)) {
             offset_lv3 = (u64) -1;
+            return false;
         }
+        // set up filesystem buffer
         if (vgame_fs_buffer) free(vgame_fs_buffer);
         vgame_fs_buffer = malloc(lv3.offset_filedata);
         if (!vgame_fs_buffer || (offset_lv3 == (u64) -1) ||

@@ -185,12 +185,11 @@ u32 LoadNcchMeta(CiaMeta* meta, const char* path, u64 offset) {
 }
 
 u32 LoadTmdFile(TitleMetaData* tmd, const char* path) {
-    const u8 magic[] = { TMD_SIG_TYPE };
     UINT br;
     
     // full TMD file
     if ((fvx_qread(path, tmd, 0, TMD_SIZE_MAX, &br) != FR_OK) ||
-        (memcmp(tmd->sig_type, magic, sizeof(magic)) != 0) ||
+        (br < TMD_SIZE_MIN) || (ValidateTmd(tmd) != 0) || 
         (br < TMD_SIZE_N(getbe16(tmd->content_count))))
         return 1;
     
@@ -376,6 +375,7 @@ u32 VerifyNcchFile(const char* path, u32 offset, u32 size) {
     }
     
     // thorough exefs verification (workaround for Process9)
+    if (!ShowProgress(0, 0, path)) return 1;
     if ((ncch.size_exefs > 0) && (memcmp(exthdr.name, "Process9", 8) != 0)) {
         for (u32 i = 0; !ver_exefs && (i < 10); i++) {
             ExeFsFileHeader* exefile = exefs.files + i;
@@ -384,6 +384,93 @@ u32 VerifyNcchFile(const char* path, u32 offset, u32 size) {
             fvx_lseek(&file, offset + (ncch.offset_exefs * NCCH_MEDIA_UNIT) + 0x200 + exefile->offset);
             ver_exefs = CheckNcchHash(hash, &file, exefile->size, offset, &ncch, &exefs);
         }
+    }
+
+    // thorough romfs verification
+    if (!ver_romfs && (ncch.size_romfs > 0)) {
+        UINT btr;
+        
+        // load ivfc header
+        RomFsIvfcHeader ivfc;
+        fvx_lseek(&file, offset + (ncch.offset_romfs * NCCH_MEDIA_UNIT));
+        if ((fvx_read(&file, &ivfc, sizeof(RomFsIvfcHeader), &btr) != FR_OK) ||
+            (DecryptNcch((u8*) &ivfc, ncch.offset_romfs * NCCH_MEDIA_UNIT, sizeof(RomFsIvfcHeader), &ncch, NULL) != 0) )
+            ver_romfs = 1;
+        
+        // load data
+        u64 lvl1_size = 0;
+        u64 lvl2_size = 0;
+        u8* masterhash = NULL;
+        u8* lvl1_data = NULL;
+        u8* lvl2_data = NULL;
+        if (!ver_romfs && (ValidateRomFsHeader(&ivfc, ncch.size_romfs * NCCH_MEDIA_UNIT) == 0)) {
+            // load masterhash(es)
+            masterhash = malloc(ivfc.size_masterhash);
+            if (masterhash) {
+                u64 offset_add = (ncch.offset_romfs * NCCH_MEDIA_UNIT) + sizeof(RomFsIvfcHeader);
+                fvx_lseek(&file, offset + offset_add);
+                if ((fvx_read(&file, masterhash, ivfc.size_masterhash, &btr) != FR_OK) ||
+                    (DecryptNcch(masterhash, offset_add, ivfc.size_masterhash, &ncch, NULL) != 0))
+                    ver_romfs = 1;
+            }
+
+            // load lvl1
+            lvl1_size = align(ivfc.size_lvl1, 1 << ivfc.log_lvl1);
+            lvl1_data = malloc(lvl1_size);
+            if (lvl1_data) {
+                u64 offset_add = (ncch.offset_romfs * NCCH_MEDIA_UNIT) + GetRomFsLvOffset(&ivfc, 1);
+                fvx_lseek(&file, offset + offset_add);
+                if ((fvx_read(&file, lvl1_data, lvl1_size, &btr) != FR_OK) ||
+                    (DecryptNcch(lvl1_data, offset_add, lvl1_size, &ncch, NULL) != 0))
+                    ver_romfs = 1;
+            }
+
+            // load lvl2
+            lvl2_size = align(ivfc.size_lvl2, 1 << ivfc.log_lvl2);
+            lvl2_data = malloc(lvl2_size);
+            if (lvl2_data) {
+                u64 offset_add = (ncch.offset_romfs * NCCH_MEDIA_UNIT) + GetRomFsLvOffset(&ivfc, 2);
+                fvx_lseek(&file, offset + offset_add);
+                if ((fvx_read(&file, lvl2_data, lvl2_size, &btr) != FR_OK) ||
+                    (DecryptNcch(lvl2_data, offset_add, lvl2_size, &ncch, NULL) != 0))
+                    ver_romfs = 1;
+            }
+
+            // check mallocs
+            if (!masterhash || !lvl1_data || !lvl2_data)
+                ver_romfs = 1; // should never happen
+        }
+        
+        // actual verification
+        if (!ver_romfs) {
+            // verify lvl1
+            u32 n_blocks = lvl1_size >> ivfc.log_lvl1;
+            u32 block_log = ivfc.log_lvl1;
+            for (u32 i = 0; !ver_romfs && (i < n_blocks); i++) 
+                ver_romfs = (u32) sha_cmp(masterhash + (i*0x20), lvl1_data + (i<<block_log), 1<<block_log, SHA256_MODE);
+            
+            // verify lvl2
+            n_blocks = lvl2_size >> ivfc.log_lvl2;
+            block_log = ivfc.log_lvl2;
+            for (u32 i = 0; !ver_romfs && (i < n_blocks); i++) {
+                ver_romfs = sha_cmp(lvl1_data + (i*0x20), lvl2_data + (i<<block_log), 1<<block_log, SHA256_MODE);
+            }
+            
+            // lvl3 verification (this will take long)
+            u64 offset_add = (ncch.offset_romfs * NCCH_MEDIA_UNIT) + GetRomFsLvOffset(&ivfc, 3);
+            n_blocks = align(ivfc.size_lvl3, 1 << ivfc.log_lvl3) >> ivfc.log_lvl3;
+            block_log = ivfc.log_lvl3;
+            fvx_lseek(&file, offset + offset_add);
+            for (u32 i = 0; !ver_romfs && (i < n_blocks); i++) {
+                ver_romfs = CheckNcchHash(lvl2_data + (i*0x20), &file, 1 << block_log, offset, &ncch, NULL);
+                offset_add += 1 << block_log;
+                if (!(i % 16) && !ShowProgress(i+1, n_blocks, path)) ver_romfs = 1;
+            }
+        }
+
+        if (masterhash) free(masterhash);
+        if (lvl1_data) free(lvl1_data);
+        if (lvl2_data) free(lvl2_data);
     }
     
     if (!offset && (ver_exthdr|ver_exefs|ver_romfs)) { // verification summary
@@ -1217,10 +1304,28 @@ u32 BuildCiaFromTmdFileBuffered(const char* path_tmd, const char* path_cia, bool
     Ticket* ticket = &(cia->ticket);
     bool src_emunand = ((*path_tmd == 'B') || (*path_tmd == '4'));
     if (force_legit) {
+        Ticket ticket_fake; // backup of the fake ticket
+        memcpy(&ticket_fake, ticket, sizeof(Ticket));
         if ((cdn && (LoadCdnTicketFile(ticket, path_tmd) != 0)) ||
             (!cdn && (FindTicket(ticket, title_id, true, src_emunand) != 0))) {
             ShowPrompt(false, "ID %016llX\nLegit ticket not found.", getbe64(title_id));
             return 1;
+        }
+        if (getbe32(ticket->console_id)) {
+            static u32 default_action = 0;
+            const char* optionstr[2] =
+                {"Use personalized ticket (legit)", "Use generic ticket (not legit)"};
+            if (!default_action) {
+                default_action = ShowSelectPrompt(2, optionstr,
+                    "ID %016llX\nLegit ticket is personalized.\nChoose default action:", getbe64(title_id));
+                ShowProgress(0, 0, path_tmd);
+            }
+            if (!default_action) return 1;
+            else if (default_action == 2) {
+                memcpy(ticket_fake.titlekey, ticket->titlekey, 0x10);
+                ticket_fake.commonkey_idx = ticket->commonkey_idx; 
+                memcpy(ticket, &ticket_fake, sizeof(Ticket));
+            }
         }
     } else if (cdn) {
         if ((LoadCdnTicketFile(ticket, path_tmd) != 0) &&
@@ -1229,13 +1334,12 @@ u32 BuildCiaFromTmdFileBuffered(const char* path_tmd, const char* path_cia, bool
             return 1;
         }
     } else {
+        Ticket ticket_tmp;
         if ((FindTitleKey(ticket, title_id) != 0) && 
-            (FindTicket(ticket, title_id, false, src_emunand) == 0) &&
-            (getbe32(ticket->console_id) || getbe32(ticket->eshop_id))) {
-            // if ticket found: wipe private data
-            memset(ticket->console_id, 0, 4); // zero out console id
-            memset(ticket->eshop_id, 0, 4); // zero out eshop id
-            memset(ticket->ticket_id, 0, 8); // zero out ticket id
+            (FindTicket(&ticket_tmp, title_id, false, src_emunand) == 0)) {
+            // we just copy the titlekey from a valid ticket (if we can)
+            memcpy(ticket->titlekey, ticket_tmp.titlekey, 0x10);
+            ticket->commonkey_idx = ticket_tmp.commonkey_idx;
         }
     }
     
@@ -1279,10 +1383,6 @@ u32 BuildCiaFromTmdFileBuffered(const char* path_tmd, const char* path_cia, bool
                 ShowPrompt(false, "ID %016llX.%08lX\nInsert content failed", getbe64(title_id), getbe32(chunk->id));
                 return 1;
             }
-        } else {
-            // still remove encryption flag if CIA is being decrypted
-            bool cia_encrypt = (force_legit && (getbe16(chunk->type) & 0x01));
-            if (!cia_encrypt) chunk->type[1] &= ~0x01; // remove crypto flag
         }
     }
     
@@ -2156,7 +2256,7 @@ u32 BuildTitleKeyInfo(const char* path, bool dec, bool dump) {
         }
         
         // parse the decoded data for valid tickets
-        for (u32 i = 0; i < TICKDB_AREA_SIZE + 0x400; i += 0x200) {
+        for (u32 i = 0; i <= TICKDB_AREA_SIZE - 0x400; i += 0x200) {
             Ticket* ticket = TicketFromTickDbChunk(data + i, NULL, true);
             if (!ticket || (ticket->commonkey_idx >= 2) || !getbe64(ticket->ticket_id)) continue;
             if (TIKDB_SIZE(tik_info) + 32 > STD_BUFFER_SIZE) break; // no error message
