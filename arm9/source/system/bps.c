@@ -257,9 +257,10 @@ u32 beatReadChecksum() {
 
 bool beatReadString(u32 length, char text[]) {
     char strBuf[256];
-    for(u32 i = 0; i < length; i++) { strBuf[min(i, 256)] = beatRead(); }
+    if (length > 255) length = 255;
+    for(u32 i = 0; i < length; i++) { strBuf[i] = beatRead(); }
     strBuf[length] = '\0';
-    snprintf(text, 256, "%s", strBuf);
+    snprintf(text, length, "%s", strBuf);
     return true;
 }
 
@@ -276,15 +277,15 @@ int ApplyBeatPatch(const char* targetName) {
     patch->relOffset = 0;
     if(bpsSize < 19) return fatalError(BEAT_PATCH_TOO_SMALL);
     
-    char header[4];
-    beatReadString(4, header);
+    char header[5];
+    beatReadString(5, header);
     if (strcmp(header, "BPS1") != 0) return fatalError(BEAT_PATCH_INVALID_HEADER);
     
     u64 patchSourceSize = beatReadNumber(patch);
     u64 patchTargetSize = beatReadNumber(patch);
     u64 patchMetaSize = beatReadNumber(patch);
     char metadata[256];
-    beatReadString(patchMetaSize, metadata);
+    beatReadString(patchMetaSize+1, metadata);
 
     target = initFile(targetName, BEAT_TARGET, patchTargetSize);
     if (!target) return fatalError(BEAT_INVALID_FILE_PATH);
@@ -427,19 +428,19 @@ int ApplyBPMPatch(const char* patchName, const char* sourcePath, const char* tar
         ((fvx_stat(targetPath, NULL) != FR_OK) && (fvx_mkdir(targetPath) != FR_OK)))
         return fatalError(BEAT_INVALID_FILE_PATH);
     
-    char header[4];
-    beatReadString(4, header);
+    char header[5];
+    beatReadString(5, header);
     if (strcmp(header, "BPM1") != 0) return fatalError(BEAT_PATCH_INVALID_HEADER);
     u64 metadataLength = beatReadNumber();
     char metadata[256];
-    beatReadString(metadataLength, metadata);
+    beatReadString(metadataLength+1, metadata);
 
     while(patch->currOffset < patch->size - 4) {
         u64 encoding = beatReadNumber(patch);
         unsigned int action = encoding & 3;
         unsigned int targetLength = (encoding >> 2) + 1;
         char targetName[256];
-        beatReadString(targetLength, targetName);
+        beatReadString(targetLength+1, targetName);
         snprintf(progressText, 256, "%s", targetName);
         
         if (!ShowProgress(patch->currOffset, patch->size, progressText)) {
@@ -469,7 +470,7 @@ int ApplyBPMPatch(const char* patchName, const char* sourcePath, const char* tar
             if (encoding & 1) snprintf(originPath, 256, "%s", targetPath);
             else snprintf(originPath, 256, "%s", sourcePath);
             if ((encoding >> 1) == 0) snprintf(sourceName, 256, "%s", targetName);
-            else beatReadString((encoding >> 1), sourceName);
+            else beatReadString((encoding >> 1)+1, sourceName);
             snprintf(oldPath, 256, "%s/%s", originPath, sourceName);
             snprintf(newPath, 256, "%s/%s", targetPath, targetName);
             if(action == BEAT_MODIFYFILE) {
