@@ -16,6 +16,12 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * To ensure correct functionality, the builtin memcpy should perform a sequential copy.
+ * If not, it should be replaced with a different reimplementation that does for sure act sequential.
+ * Or alternatively, it's own memcpy with it's own name, say perhaps seqmemcpy, and memcpy calls replaced.
+ */
+
 #include "common.h"
 #include "rsa.h"
 #include "sha.h"

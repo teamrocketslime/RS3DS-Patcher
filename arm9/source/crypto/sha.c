@@ -1,3 +1,8 @@
+/*
+ * To ensure correct functionality, the builtin memcpy should perform a sequential copy.
+ * If not, it should be replaced with a different reimplementation that does for sure act sequential.
+ * Or alternatively, it's own memcpy with it's own name, say perhaps seqmemcpy, and memcpy calls replaced, as well the line "*((_sha_block*)REG_SHAINFIFO) = *((const _sha_block*)src32);" inside sha_update, to call explicitly seqmemcpy like, "seqmemcpy(REG_SHAINFIFO, src32, 0x40);".
+ */
 #include "sha.h"
 
 typedef struct
@@ -17,7 +22,7 @@ void sha_update(const void* src, u32 size)
     
     while(size >= 0x40) {
         while(*REG_SHACNT & 1);
-        *((_sha_block*)REG_SHAINFIFO) = *((const _sha_block*)src32);
+        *((volatile _sha_block*)REG_SHAINFIFO) = *((const _sha_block*)src32);
         src32 += 16;
         size -= 0x40;
     }
