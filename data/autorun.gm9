@@ -2,10 +2,10 @@ set RS_VERSION 0.8
 set PREVIEW_MODE V:/RocketSlime.png
 set RSGCART C:/000400000005C300_v00.3ds
 set DIGITAL A:/title/00040000/0005C300/content/00000000.app
-set LAYERFS 0:/luma/titles/000400000005C300
-set TABLEDIR 0:/fti/rocket_slime_3ds
+set PATCHDIR 0:/fti/rocket_slime_3ds
+set LUMADIR 0:/luma/titles/000400000005C300
 
-echo "  Welcome to the Rocket Slime patcher.  \nThis app will build Version $[RS_VERSION] of the\n  fan translation by Team Rocket Slime. \nThe process will take about two minutes."
+echo "  Welcome to the Rocket Slime 3DS patcher.  \nThis app will build Version $[RS_VERSION] of the\n  fan translation by Team Rocket Slime. \nThe process will take about two minutes."
 
 if find $[RSGCART] NULL
     imgmount $[RSGCART]
@@ -18,22 +18,25 @@ else
     reboot
 end
 
-if find $[LAYERFS] NULL
-    mv $[LAYERFS] $[LAYERFS]-Backup-$[DATESTAMP]-$[TIMESTAMP]
+if find $[LUMADIR] NULL
+    mv $[LUMADIR] $[LUMADIR]-Backup-$[DATESTAMP]-$[TIMESTAMP]
+end
+
+if find $[PATCHDIR] NULL
+    mv $[PATCHDIR] $[PATCHDIR]-Backup-$[DATESTAMP]-$[TIMESTAMP]
 end
 
 mkdir 0:/luma
 mkdir 0:/luma/titles
-mkdir $[LAYERFS]
-mkdir $[LAYERFS]/romfs
-mkdir $[LAYERFS]/romfs/data
-mkdir $[LAYERFS]/romfs/data/Game
+mkdir $[LUMADIR]
 
 mkdir 0:/fti
-mkdir $[TABLEDIR]
+mkdir $[PATCHDIR]
+mkdir $[PATCHDIR]/data
+mkdir $[PATCHDIR]/data/Game
 
-cp V:/code.ips $[LAYERFS]/code.ips
-cp V:/tables.bin $[TABLEDIR]/tables.bin
-applybpm V:/RS3DS-PatchData.bpm $[SOURCE]/romfs/data/Game $[LAYERFS]/romfs/data/Game
+cp V:/code.ips 0:/luma/titles/000400000005C300/code.ips
+cp V:/tables.bin $[PATCHDIR]/tables.bin
+applybpm V:/RS3DS-PatchData.bpm $[SOURCE]/romfs/data/Game $[PATCHDIR]/data/Game
 
 echo "Patching complete. Your 3DS will now reboot."
