@@ -5,7 +5,7 @@ set DIGITAL A:/title/00040000/0005C300/content/00000000.app
 set PATCHDIR 0:/fti/rocket_slime_3ds
 set LUMADIR 0:/luma/titles/000400000005C300
 
-echo "  Welcome to the Rocket Slime 3DS patcher.  \nThis app will build Version $[RS_VERSION] of the\n  fan translation by Team Rocket Slime. \nThe process will take about two minutes."
+echo "  Welcome to the Slime MoriMori 3 (Rocket Slime 3DS) patcher.  \nThis app will build Version $[RS_VERSION] of the\n  fan translation by Team Rocket Slime. \nThe process will take about two minutes."
 
 if find $[RSGCART] NULL
     imgmount $[RSGCART]
@@ -14,7 +14,7 @@ elif find $[DIGITAL] NULL
     imgmount $[DIGITAL]
     set SOURCE G:
 else
-    echo "Could not find a copy of Rocket Slime on the 3DS.\n Please insert the cartridge or download it from \n  the Japanese eShop then restart this patcher.  "
+    echo "Could not find a copy of Rocket Slime 3DS. \n Please insert the cartridge or download it from \n  the Japanese eShop then restart this patcher.  "
     reboot
 end
 
