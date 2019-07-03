@@ -46,3 +46,8 @@ desktop.ini
 /data/aeskeydb.bin
 /data/aeskeydb_.bin
 /zzz_backup
+
+# Patcher related
+/data/tables.bin
+/data/code.ips
+/data/RS3DS-PatchData.bpm
