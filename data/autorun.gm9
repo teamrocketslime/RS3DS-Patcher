@@ -25,12 +25,15 @@ end
 mkdir 0:/luma
 mkdir 0:/luma/titles
 mkdir $[LAYERFS]
+mkdir $[LAYERFS]/romfs
+mkdir $[LAYERFS]/romfs/data
+mkdir $[LAYERFS]/romfs/data/Game
 
 mkdir 0:/fti
 mkdir $[TABLEDIR]
 
 cp V:/code.ips $[LAYERFS]/code.ips
 cp V:/tables.bin $[TABLEDIR]/tables.bin
-applybpm V:/RS3DS-PatchData.bpm $[SOURCE]/romfs/data $[LAYERFS]/romfs/data
+applybpm V:/RS3DS-PatchData.bpm $[SOURCE]/romfs/data/Game $[LAYERFS]/romfs/data/Game
 
 echo "Patching complete. Your 3DS will now reboot."
