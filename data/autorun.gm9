@@ -1,4 +1,4 @@
-set RS_VERSION Beta1
+set RS_VERSION 1.0RC1
 set PREVIEW_MODE V:/RocketSlime.png
 set RSGCART C:/000400000005C300_v00.3ds
 set DIGITAL A:/title/00040000/0005C300/content/00000000.app
@@ -14,7 +14,7 @@ elif find $[DIGITAL] NULL
     imgmount $[DIGITAL]
     set SOURCE G:
 else
-    echo "Could not find a copy of Rocket Slime 3DS. \n Please insert the cartridge or download it from \n  the Japanese eShop then restart this patcher.  "
+    echo "Could not find a copy of Rocket Slime 3DS. \n Please insert the cartridge or ensure that a digital \n backup is installed then restart this patcher.  "
     reboot
 end
 
